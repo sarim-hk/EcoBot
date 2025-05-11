@@ -81,7 +81,7 @@ namespace EcoBot
         {
 
             Color colour;
-            switch(responseType)
+            switch (responseType)
             {
                 case ResponseType.Information:
                     colour = Color.Blue;
