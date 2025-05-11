@@ -5,26 +5,34 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Text.Json;
+using System.Reflection.Metadata.Ecma335;
 
 namespace EcoBot
 {
     class DatHostAPIClient
     {
         private ILogger Logger;
-        private string _authInfo;
+        private string? _serverID;
+        private string? _authInfo;
 
-        public DatHostAPIClient(string email, string password, ILogger logger)
+        public DatHostAPIClient(ILogger logger)
         {
             Logger = logger;
+        }
+
+        public void SetAuthDetails(string email, string password, string serverID)
+        {
+            _serverID = serverID;
             _authInfo = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{email}:{password}"));
         }
 
-        public async Task<string?> BaseRequest(string apiURL)
+        private async Task<string?> BaseGetRequest(string apiURL)
         {
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", _authInfo);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 try
                 {
@@ -37,11 +45,10 @@ namespace EcoBot
                     }
                     else
                     {
-                        Logger.LogError($"{response.StatusCode} - {response.ReasonPhrase}");
+                        Logger.LogError($"{response.StatusCode} - {response.ReasonPhrase} - {response.Content}");
                         return null;
                     }
                 }
-                
                 catch (Exception ex)
                 {
                     Logger.LogError(ex.ToString());
@@ -49,6 +56,36 @@ namespace EcoBot
                 }
             }
         }
+
+        public async Task<RconDetails?> GetRconDetails()
+        {
+            string? response = await BaseGetRequest($"https://dathost.net/api/0.1/game-servers/{_serverID}");
+            if (string.IsNullOrEmpty(response)) return null;
+
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(response);
+                string? rawIP = doc.RootElement.GetProperty("raw_ip").GetString();
+                int? port = doc.RootElement.GetProperty("ports").GetProperty("game").GetInt32();
+                string? rconPassword = doc.RootElement.GetProperty("cs2_settings").GetProperty("rcon").GetString();
+
+                if (string.IsNullOrEmpty(rawIP) || !port.HasValue || string.IsNullOrEmpty(rconPassword))
+                {
+                    Logger.LogError($"Some fetched RCON details are missing: {rawIP} {port} {rconPassword}");
+                    return null;
+                }
+
+                var rconDetails = new RconDetails(rawIP, port.Value, rconPassword);
+                return rconDetails;
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex.ToString());
+                return null;
+            }
+        }
+
 
     }
 }
