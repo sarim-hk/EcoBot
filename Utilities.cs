@@ -30,7 +30,7 @@ namespace EcoBot
                 return false;
             }
 
-            LogAsync("Config validated successfully.", LogType.Information);
+            Logger.LogInformation("Config validated successfully.");
             return true;
         }
 
