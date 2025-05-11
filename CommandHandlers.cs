@@ -19,9 +19,23 @@ namespace EcoBot
                 int? playerCount = await rconClient.GetPlayerCount();
                 if (!playerCount.HasValue) return;
 
+                string description;
+                switch (playerCount)
+                {
+                    case 0:
+                        description = $"The server is already on, but nobody is online. Did you mean /restartserver?";
+                        break;
+                    case 1:
+                        description = $"The server is already on, with 1 player online.";
+                        break;
+                    default:
+                        description = $"The server is already on, with {playerCount} players online.";
+                        break;
+                }
+
                 var embed = CreateEmbed(
                     title: "Start Server",
-                    description: $"The server is already on, with {playerCount} players online.",
+                    description: description,
                     ResponseType.Information
                     );
 
