@@ -12,6 +12,20 @@ namespace EcoBot
         Error
     }
 
+    class RconDetails
+    {
+        public string RawIP;
+        public int Port;
+        public string RconPassword;
+
+        public RconDetails(string rawIP, int port, string rconPassword)
+        {
+            RawIP = rawIP;
+            Port = port;
+            RconPassword = rconPassword;
+        }
+    }
+
     public partial class EcoBot
     {
         /// <summary> Validates the configuration values from the application's JSON config files. </summary>
