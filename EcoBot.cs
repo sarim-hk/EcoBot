@@ -33,7 +33,7 @@ namespace EcoBot
         private static async Task ReadyAsync()
         {
             var guild = _client.GetGuild(ulong.Parse(Config["Discord:GuildID"]!));
-            await LogAsync($"Client is ready at {guild.Name}", LogType.Information);
+            Logger.LogInformation($"Client is ready at {guild.Name}");
 
             var guildCommand = new SlashCommandBuilder();
             guildCommand.WithName("startserver");
@@ -44,7 +44,7 @@ namespace EcoBot
             }
             catch (HttpException ex)
             {
-                await LogAsync(ex.ToString(), LogType.Critical);
+                Logger.LogCritical(ex.ToString());
             }
         }
 
@@ -56,7 +56,7 @@ namespace EcoBot
             }
             catch ( Exception ex )
             {
-                await LogAsync(ex.ToString(), LogType.Critical);
+                Logger.LogCritical(ex.ToString());
             }
         }
 

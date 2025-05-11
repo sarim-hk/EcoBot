@@ -3,13 +3,6 @@ using Microsoft.Extensions.Logging;
 
 namespace EcoBot
 {
-    public enum LogType
-    {
-        Critical,
-        Error,
-        Information,
-        Debug
-    }
 
     public partial class EcoBot
     {
@@ -40,33 +33,6 @@ namespace EcoBot
             LogAsync("Config validated successfully.", LogType.Information);
             return true;
         }
-
-        /// <summary> Async wrapper around logger. </summary>
-        /// <param name="logType"> Enum that maps to log types: Critical, Error, Information, Debug. </param>
-        private static Task LogAsync(string logMessage, LogType logType)
-        {
-            switch (logType)
-            {
-                case LogType.Critical:
-                    Logger.LogCritical(logMessage);
-                    break;
-
-                case LogType.Error:
-                    Logger.LogError(logMessage);
-                    break;
-
-                case LogType.Information:
-                    Logger.LogInformation(logMessage);
-                    break;
-
-                case LogType.Debug:
-                    Logger.LogInformation(logMessage);
-                    break;
-            }
-
-            return Task.CompletedTask;
-        }
-
 
     }
 
