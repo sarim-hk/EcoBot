@@ -12,13 +12,13 @@ namespace EcoBot
 {
     class DatHostAPIClient
     {
-        private ILogger Logger;
+        private ILogger _logger;
         private string? _serverID;
         private string? _authInfo;
 
         public DatHostAPIClient(ILogger logger)
         {
-            Logger = logger;
+            _logger = logger;
         }
 
         public void SetAuthDetails(string email, string password, string serverID)
@@ -45,13 +45,13 @@ namespace EcoBot
                     }
                     else
                     {
-                        Logger.LogError($"{response.StatusCode} - {response.ReasonPhrase} - {response.Content}");
+                        _logger.LogError($"{response.StatusCode} - {response.ReasonPhrase} - {response.Content}");
                         return null;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex.ToString());
+                    _logger.LogError(ex.ToString());
                     return null;
                 }
             }
@@ -71,7 +71,7 @@ namespace EcoBot
 
                 if (string.IsNullOrEmpty(rawIP) || !port.HasValue || string.IsNullOrEmpty(rconPassword))
                 {
-                    Logger.LogError($"Some fetched RCON details are missing: {rawIP} {port} {rconPassword}");
+                    _logger.LogError($"Some fetched RCON details are missing: {rawIP} {port} {rconPassword}");
                     return null;
                 }
 
@@ -81,7 +81,7 @@ namespace EcoBot
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.ToString());
+                _logger.LogError(ex.ToString());
                 return null;
             }
         }

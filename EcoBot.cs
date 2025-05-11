@@ -16,29 +16,29 @@ namespace EcoBot
                 .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
                 .Build();
 
-        private static ILogger Logger = LoggerFactory.Create(builder => { builder.AddConsole().AddDebug().SetMinimumLevel(LogLevel.Information); }).CreateLogger<EcoBot>();
-        private static DiscordSocketClient _client = new DiscordSocketClient();
-        private static DatHostAPIClient DatHostClient = new DatHostAPIClient(Logger);
+        private static ILogger _logger = LoggerFactory.Create(builder => { builder.AddConsole().AddDebug().SetMinimumLevel(LogLevel.Information); }).CreateLogger<EcoBot>();
+        private static DiscordSocketClient _discordClient = new DiscordSocketClient();
+        private static DatHostAPIClient _datHostClient = new DatHostAPIClient(_logger);
 
 
         public static async Task Main()
         {
             if (!ValidateConfig()) return;
 
-            _client.Ready += ReadyAsync;
-            _client.SlashCommandExecuted += SlashCommandHandler;
+            _discordClient.Ready += ReadyAsync;
+            _discordClient.SlashCommandExecuted += SlashCommandHandler;
 
-            await _client.LoginAsync(TokenType.Bot, Config["Discord:Token"]!);
-            await _client.StartAsync();
+            await _discordClient.LoginAsync(TokenType.Bot, Config["Discord:Token"]!);
+            await _discordClient.StartAsync();
             await Task.Delay(Timeout.Infinite);
         }
 
         private static async Task ReadyAsync()
         {
 
-            DatHostClient.SetAuthDetails(Config["DatHost:EmailAddress"]!, Config["DatHost:Password"]!, Config["DatHost:ServerID"]!);
+            _datHostClient.SetAuthDetails(Config["DatHost:EmailAddress"]!, Config["DatHost:Password"]!, Config["DatHost:ServerID"]!);
 
-            var guild = _client.GetGuild(ulong.Parse(Config["Discord:GuildID"]!));
+            var guild = _discordClient.GetGuild(ulong.Parse(Config["Discord:GuildID"]!));
             var guildCommand = new SlashCommandBuilder().WithName("startserver").WithDescription("Start the eco server.");
 
             try
@@ -47,10 +47,10 @@ namespace EcoBot
             }
             catch (HttpException ex)
             {
-                Logger.LogCritical(ex.StackTrace);
+                _logger.LogCritical(ex.StackTrace);
             }
 
-            Logger.LogInformation($"Client is ready at {guild.Name}");
+            _logger.LogInformation($"Client is ready at {guild.Name}");
 
         }
 

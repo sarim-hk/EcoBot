@@ -41,39 +41,39 @@ namespace EcoBot
             string? discordToken = config["Discord:Token"];
             if (string.IsNullOrEmpty(discordToken))
             {
-                Logger.LogCritical("No Discord Token in config.");
+                _logger.LogCritical("No Discord Token in config.");
                 return false;
             }
 
             string? discordGuildID = config["Discord:GuildID"];
             if (string.IsNullOrEmpty(discordGuildID) || (discordGuildID == "-1"))
             {
-                Logger.LogCritical("No Discord Guild ID in config.");
+                _logger.LogCritical("No Discord Guild ID in config.");
                 return false;
             }
 
             string? dathostServerID = config["Dathost:ServerID"];
             if (string.IsNullOrEmpty(dathostServerID))
             {
-                Logger.LogCritical("No Dathost Server ID in config.");
+                _logger.LogCritical("No Dathost Server ID in config.");
                 return false;
             }
 
             string? dathostEmail = config["Dathost:EmailAddress"];
             if (string.IsNullOrEmpty(dathostEmail))
             {
-                Logger.LogCritical("No Dathost Email Address in config.");
+                _logger.LogCritical("No Dathost Email Address in config.");
                 return false;
             }
 
             string? dathostPassword = config["Dathost:Password"];
             if (string.IsNullOrEmpty(dathostPassword))
             {
-                Logger.LogCritical("No Dathost Password in config.");
+                _logger.LogCritical("No Dathost Password in config.");
                 return false;
             }
 
-            Logger.LogInformation("Config validated successfully.");
+            _logger.LogInformation("Config validated successfully.");
             return true;
         }
 

@@ -12,12 +12,12 @@ namespace EcoBot
     class CS2RconClient
     {
         private RconDetails _rconDetails;
-        private ILogger Logger;
+        private ILogger _logger;
 
         public CS2RconClient(RconDetails rconDetails, ILogger logger)
         {
             _rconDetails = rconDetails;
-            Logger = logger;
+            _logger = logger;
         }
 
         public async Task<int?> GetPlayerCount()
@@ -37,13 +37,13 @@ namespace EcoBot
                 }
                 else
                 {
-                    Logger.LogError("Could not find the player count in status output.");
+                    _logger.LogError("Could not find the player count in status output.");
                     return null;
                 }
             }
             else
             {
-                Logger.LogError("Server did not like our rcon auth.");
+                _logger.LogError("Server did not like our rcon auth.");
                 return null;
             }
 

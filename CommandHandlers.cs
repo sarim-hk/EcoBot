@@ -11,10 +11,10 @@ namespace EcoBot
         {
             try
             {
-                RconDetails? rconDetails = await DatHostClient.GetRconDetails();
+                RconDetails? rconDetails = await _datHostClient.GetRconDetails();
                 if (rconDetails == null) return;
 
-                var rconClient = new CS2RconClient(rconDetails, Logger);
+                var rconClient = new CS2RconClient(rconDetails, _logger);
                 
                 int? playerCount = await rconClient.GetPlayerCount();
                 if (!playerCount.HasValue) return;
@@ -29,7 +29,7 @@ namespace EcoBot
             }
             catch (Exception ex)
             {
-                Logger.LogCritical(ex.StackTrace);
+                _logger.LogCritical(ex.StackTrace);
             }
         }
 
