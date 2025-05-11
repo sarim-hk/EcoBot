@@ -3,19 +3,9 @@ using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.VisualBasic;
 
 namespace EcoBot
 {
-
-    public enum LogType
-    {
-        Critical,
-        Error,
-        Information,
-        Debug
-    }
 
     public class EcoBot
     {
