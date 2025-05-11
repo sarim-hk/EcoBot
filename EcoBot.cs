@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace EcoBot
 {
 
-    public class EcoBot
+    public partial class EcoBot
     {
         private static IConfigurationRoot Config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -17,32 +17,6 @@ namespace EcoBot
 
         private static ILogger Logger = LoggerFactory.Create(builder => { builder.AddConsole().AddDebug().SetMinimumLevel(LogLevel.Information); }).CreateLogger<EcoBot>();
         private static DiscordSocketClient _client = new DiscordSocketClient();
-
-        private static bool ValidateConfig()
-        {
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false)
-                .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
-                .Build();
-
-            string? discordToken = config["Discord:Token"];
-            if (string.IsNullOrEmpty(discordToken))
-            {
-                Logger.LogCritical("No Discord Token in config.");
-                return false;
-            }
-
-            string? discordGuildID = config["Discord:GuildID"];
-            if (string.IsNullOrEmpty(discordGuildID) || (discordGuildID == "-1"))
-            {
-                Logger.LogCritical("No Discord Guild ID in config.");
-                return false;
-            }
-
-            LogAsync("Config validated successfully.", LogType.Information);
-            return true;
-        }
 
         public static async Task Main()
         {
@@ -54,30 +28,6 @@ namespace EcoBot
             await _client.LoginAsync(TokenType.Bot, Config["Discord:Token"]!);
             await _client.StartAsync();
             await Task.Delay(Timeout.Infinite);
-        }
-
-        private static Task LogAsync(string logMessage, LogType logType)
-        {
-            switch (logType)
-            {
-                case LogType.Critical:
-                    Logger.LogCritical(logMessage);
-                    break;
-
-                case LogType.Error:
-                    Logger.LogError(logMessage);
-                    break;
-
-                case LogType.Information:
-                    Logger.LogInformation(logMessage);
-                    break;
-
-                case LogType.Debug:
-                    Logger.LogInformation(logMessage);
-                    break;
-            }
-
-            return Task.CompletedTask;
         }
 
         private static async Task ReadyAsync()
