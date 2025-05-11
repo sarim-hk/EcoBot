@@ -1,7 +1,5 @@
 ﻿using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using RconSharp;
-using System.Text.RegularExpressions;
 
 namespace EcoBot
 {
