@@ -1,8 +1,16 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Discord;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace EcoBot
 {
+
+    enum ResponseType
+    {
+        Information,
+        Success,
+        Error
+    }
 
     public partial class EcoBot
     {
@@ -30,8 +38,59 @@ namespace EcoBot
                 return false;
             }
 
+            string? dathostServerID = config["Dathost:ServerID"];
+            if (string.IsNullOrEmpty(dathostServerID))
+            {
+                Logger.LogCritical("No Dathost Server ID in config.");
+                return false;
+            }
+
+            string? dathostEmail = config["Dathost:EmailAddress"];
+            if (string.IsNullOrEmpty(dathostEmail))
+            {
+                Logger.LogCritical("No Dathost Email Address in config.");
+                return false;
+            }
+
+            string? dathostPassword = config["Dathost:Password"];
+            if (string.IsNullOrEmpty(dathostPassword))
+            {
+                Logger.LogCritical("No Dathost Password in config.");
+                return false;
+            }
+
             Logger.LogInformation("Config validated successfully.");
             return true;
+        }
+
+        private static EmbedBuilder CreateEmbed(string title, string description, ResponseType responseType)
+        {
+
+            Color colour;
+            switch(responseType)
+            {
+                case ResponseType.Information:
+                    colour = Color.Blue;
+                    break;
+                case ResponseType.Success:
+                    colour = Color.Green;
+                    break;
+                case ResponseType.Error:
+                    colour = Color.Red;
+                    break;
+                default:
+                    colour = Color.DarkerGrey;
+                    break;
+            }
+
+            var embed = new EmbedBuilder
+            {
+                Title = title,
+                Description = description,
+                Color = colour,
+            };
+
+            return embed;
         }
 
     }
