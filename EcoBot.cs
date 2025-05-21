@@ -4,11 +4,9 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace EcoBot
-{
+namespace EcoBot {
 
-    public partial class EcoBot
-    {
+    public partial class EcoBot {
 
         private static IConfigurationRoot Config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -21,8 +19,7 @@ namespace EcoBot
         private static DatHostAPIClient _datHostClient = new DatHostAPIClient(_logger);
 
 
-        public static async Task Main()
-        {
+        public static async Task Main() {
             if (!ValidateConfig()) return;
 
             _discordClient.Ready += ReadyAsync;
@@ -33,8 +30,7 @@ namespace EcoBot
             await Task.Delay(Timeout.Infinite);
         }
 
-        private static async Task ReadyAsync()
-        {
+        private static async Task ReadyAsync() {
 
             _datHostClient.SetAuthDetails(Config["DatHost:EmailAddress"]!, Config["DatHost:Password"]!, Config["DatHost:ServerID"]!);
 
@@ -46,8 +42,7 @@ namespace EcoBot
                 await guild.CreateApplicationCommandAsync(startServerCommandBuild.Build());
                 await guild.CreateApplicationCommandAsync(stopServerCommandBuild.Build());
             }
-            catch (HttpException ex)
-            {
+            catch (HttpException ex) {
                 _logger.LogCritical(ex.StackTrace);
             }
 
@@ -55,10 +50,8 @@ namespace EcoBot
 
         }
 
-        private static async Task SlashCommandHandler(SocketSlashCommand command)
-        {
-            switch (command.Data.Name)
-            {
+        private static async Task SlashCommandHandler(SocketSlashCommand command) {
+            switch (command.Data.Name) {
                 case "startserver":
                     await HandleStartServerCommand(command);
                     break;

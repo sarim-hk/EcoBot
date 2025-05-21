@@ -1,14 +1,10 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace EcoBot
-{
-    public partial class EcoBot
-    {
-        private static async Task HandleStartServerCommand(SocketSlashCommand command)
-        {
+namespace EcoBot {
+    public partial class EcoBot {
+        private static async Task HandleStartServerCommand(SocketSlashCommand command) {
             try {
                 EmbedBuilder startServerEmbed;
 
@@ -38,8 +34,7 @@ namespace EcoBot
                                 ResponseType.Success
                                 );
                         }
-                        else
-                        {
+                        else {
                             startServerEmbed = CreateEmbed(
                                 title: "Start Server",
                                 description: "An error occurred while starting the server.",
@@ -87,8 +82,7 @@ namespace EcoBot
 
                 // Change the embed description based on the player count
                 string description;
-                switch (playerCount)
-                {
+                switch (playerCount) {
                     case 0:
                         description = $"The server is already on, but nobody is online. Did you mean /restartserver?";
                         break;
@@ -108,8 +102,7 @@ namespace EcoBot
                 await command.FollowupAsync(embed: startServerEmbed.Build());
             }
 
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.LogCritical(ex.StackTrace);
             }
 
