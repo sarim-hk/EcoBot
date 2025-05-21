@@ -148,7 +148,7 @@ namespace EcoBot
                     case -1:
                         stopServerEmbed = CreateEmbed(
                             title: "Stop Server",
-                            description: "The server is currently booting.",
+                            description: "The server is booting, it cannot be shut down.",
                             ResponseType.Information
                             );
                         await command.FollowupAsync(embed: stopServerEmbed.Build());
@@ -187,7 +187,7 @@ namespace EcoBot
                     case 0:
                         bool stopServerResponse = await _datHostClient.StopServer();
                         if (stopServerResponse == true) {
-                            description = "The server is being stopped.";
+                            description = "The server will stop shortly.";
                             responseType = ResponseType.Success;
                         }
                         else {
