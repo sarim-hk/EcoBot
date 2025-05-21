@@ -36,10 +36,12 @@ namespace EcoBot {
 
             var guild = _discordClient.GetGuild(ulong.Parse(Config["Discord:GuildID"]!));
             var startServerCommandBuild = new SlashCommandBuilder().WithName("startserver").WithDescription("Start the eco server.");
+            var restartServerCommandBuild = new SlashCommandBuilder().WithName("restartserver").WithDescription("Restart the eco server.");
             var stopServerCommandBuild = new SlashCommandBuilder().WithName("stopserver").WithDescription("Stop the eco server.");
 
             try {
                 await guild.CreateApplicationCommandAsync(startServerCommandBuild.Build());
+                await guild.CreateApplicationCommandAsync(restartServerCommandBuild.Build());
                 await guild.CreateApplicationCommandAsync(stopServerCommandBuild.Build());
             }
             catch (HttpException ex) {

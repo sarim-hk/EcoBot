@@ -211,5 +211,110 @@ namespace EcoBot {
             }
 
         }
+
+        private static async Task HandleRestartServerCommand(SocketSlashCommand command) {
+            try {
+                EmbedBuilder restartServerEmbed;
+
+                // Let discord know that you've actually received the command and that you're gonna start processing stuff
+                await command.DeferAsync();
+
+                // Get the server status (-1 = booting,  0 = off, 1 = on)
+                int? serverStatus = await _datHostClient.GetServerStatus();
+                if (serverStatus == null) {
+                    restartServerEmbed = CreateEmbed(
+                        title: "Restart Server",
+                        description: "An error occurred while getting the current server status.",
+                        ResponseType.Error
+                        );
+                    await command.FollowupAsync(embed: restartServerEmbed.Build());
+                    return;
+                }
+
+                // If the server is off, inform the user it's already off. If it's booting, inform the user. If it's on, proceed to next code block.
+                switch (serverStatus) {
+                    case 0:
+                        restartServerEmbed = CreateEmbed(
+                            title: "Restart Server",
+                            description: "The server is off, it cannot be restarted. Did you mean /startserver?",
+                            ResponseType.Information
+                            );
+                        await command.FollowupAsync(embed: restartServerEmbed.Build());
+                        return;
+
+                    case -1:
+                        restartServerEmbed = CreateEmbed(
+                            title: "Restart Server",
+                            description: "The server is booting, it cannot be restarted.",
+                            ResponseType.Information
+                            );
+                        await command.FollowupAsync(embed: restartServerEmbed.Build());
+                        return;
+                }
+
+                // Otherwise, lets get the rcon details which we'll use to check if there are people in the server or if its empty
+                RconDetails? rconDetails = await _datHostClient.GetRconDetails();
+                if (rconDetails == null) {
+                    restartServerEmbed = CreateEmbed(
+                        title: "Restart Server",
+                        description: "An error occurred while getting the server RCON details.",
+                        ResponseType.Error
+                        );
+                    await command.FollowupAsync(embed: restartServerEmbed.Build());
+                    return;
+                }
+
+                // Get the player count
+                var rconClient = new CS2RconClient(rconDetails, _logger);
+                int? playerCount = await rconClient.GetPlayerCount();
+                if (!playerCount.HasValue) {
+                    restartServerEmbed = CreateEmbed(
+                        title: "Restart Server",
+                        description: "An error occurred while getting the player count.",
+                        ResponseType.Error
+                        );
+                    await command.FollowupAsync(embed: restartServerEmbed.Build());
+                    return;
+                }
+
+                // Change the embed description and response type based on the player count
+                string description;
+                ResponseType responseType;
+                switch (playerCount) {
+                    case 0:
+                        bool restartServerResponse = await _datHostClient.StartServer();
+                        if (restartServerResponse == true) {
+                            description = "The server will restart shortly.";
+                            responseType = ResponseType.Success;
+                        }
+                        else {
+                            description = "An error occurred while restarting the server.";
+                            responseType = ResponseType.Error;
+                        }
+                        break;
+                    case 1:
+                        description = $"The server can't be restarted, 1 player is online.";
+                        responseType = ResponseType.Information;
+                        break;
+                    default:
+                        description = $"The server can't be restarted, there are {playerCount} players online.";
+                        responseType = ResponseType.Information;
+                        break;
+                }
+
+                restartServerEmbed = CreateEmbed(
+                    title: "Restart Server",
+                    description: description,
+                    responseType
+                    );
+                await command.FollowupAsync(embed: restartServerEmbed.Build());
+            }
+
+            catch (Exception ex) {
+                _logger.LogCritical(ex.StackTrace);
+            }
+
+        }
+
     }
 }
