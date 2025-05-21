@@ -57,6 +57,9 @@ namespace EcoBot {
                 case "startserver":
                     await HandleStartServerCommand(command);
                     break;
+                case "restartserver":
+                    await HandleRestartServerCommand(command);
+                    break;
                 case "stopserver":
                     await HandleStopServerCommand(command);
                     break;
