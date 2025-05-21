@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -46,8 +47,31 @@ namespace EcoBot
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex.ToString());
+                    _logger.LogError(ex.StackTrace);
                     return null;
+                }
+            }
+        }
+
+        private async Task<HttpStatusCode> BasePostRequest(string apiURL, Dictionary<string, string>? parameters = null) {
+            using (HttpClient client = new HttpClient()) {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", _authInfo);
+
+                var content = new FormUrlEncodedContent(parameters ?? new Dictionary<string, string>());
+
+                try {
+                    HttpResponseMessage response = await client.PostAsync(apiURL, content);
+
+                    // Log error information if not successful
+                    if (!response.IsSuccessStatusCode) {
+                        _logger.LogError($"{response.StatusCode} - {response.ReasonPhrase}");
+                    }
+
+                    return response.StatusCode;
+                }
+                catch (Exception ex) {
+                    _logger.LogError(ex.StackTrace);
+                    return HttpStatusCode.InternalServerError; // Default to 500 for exceptions
                 }
             }
         }
@@ -76,11 +100,44 @@ namespace EcoBot
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.ToString());
+                _logger.LogError(ex.StackTrace);
                 return null;
             }
         }
 
+        public async Task<int?> GetServerStatus() {
+            string? response = await BaseGetRequest($"https://dathost.net/api/0.1/game-servers/{_serverID}");
+            if (string.IsNullOrEmpty(response)) return null;
+
+            try {
+                using JsonDocument doc = JsonDocument.Parse(response);
+
+                bool? isServerBooting = doc.RootElement.GetProperty("booting").GetBoolean();
+                bool? isServerOn = doc.RootElement.GetProperty("on").GetBoolean();
+
+                if (isServerBooting != null && isServerBooting == true) {
+                    return -1;
+                }
+
+                if (isServerOn != null) {
+                    return Convert.ToInt32(isServerOn);
+                }
+
+                return null;
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex.StackTrace);
+                return null;
+            }
+        }
+
+        public async Task<bool> StartServer() {
+            var parameters = new Dictionary<string, string> { { "allow_host_reassignment", "false" } };
+            HttpStatusCode statusCode = await BasePostRequest($"https://dathost.net/api/0.1/game-servers/{_serverID}/start", parameters);
+
+            // Return true only if request was successful (2xx status code)
+            return statusCode >= HttpStatusCode.OK && statusCode < HttpStatusCode.MultipleChoices;
+        }
 
     }
 }
