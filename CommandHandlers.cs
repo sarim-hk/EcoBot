@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EcoBot
 {
@@ -125,7 +126,7 @@ namespace EcoBot
                 int? serverStatus = await _datHostClient.GetServerStatus();
                 if (serverStatus == null) {
                     stopServerEmbed = CreateEmbed(
-                        title: "Start Server",
+                        title: "Stop Server",
                         description: "An error occurred while getting the current server status.",
                         ResponseType.Error
                         );
@@ -133,7 +134,7 @@ namespace EcoBot
                     return;
                 }
 
-                // If the server is off, turn it on. If it's already booting, inform the user. If it's on, proceed to next code block.
+                // If the server is off, inform the user it's already off. If it's booting, inform the user. If it's on, proceed to next code block.
                 switch (serverStatus) {
                     case 0:
                         stopServerEmbed = CreateEmbed(
@@ -179,13 +180,20 @@ namespace EcoBot
                     return;
                 }
 
-                // Change the embed description based on the player count
+                // Change the embed description and response type based on the player count
                 string description;
                 ResponseType responseType;
                 switch (playerCount) {
                     case 0:
-                        description = "The server is being stopped.";
-                        responseType = ResponseType.Success;
+                        bool stopServerResponse = await _datHostClient.StopServer();
+                        if (stopServerResponse == true) {
+                            description = "The server is being stopped.";
+                            responseType = ResponseType.Success;
+                        }
+                        else {
+                            description = "An error occurred while stopping the server.";
+                            responseType = ResponseType.Error;
+                        }
                         break;
                     case 1:
                         description = $"The server can't be stopped, 1 player is online.";
