@@ -139,5 +139,12 @@ namespace EcoBot
             return statusCode >= HttpStatusCode.OK && statusCode < HttpStatusCode.MultipleChoices;
         }
 
+        public async Task<bool> StopServer() {
+            HttpStatusCode statusCode = await BasePostRequest($"https://dathost.net/api/0.1/game-servers/{_serverID}/stop");
+
+            // Return true only if request was successful (2xx status code)
+            return statusCode >= HttpStatusCode.OK && statusCode < HttpStatusCode.MultipleChoices;
+        }
+
     }
 }

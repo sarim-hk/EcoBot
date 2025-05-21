@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 
 namespace EcoBot
@@ -25,7 +26,7 @@ namespace EcoBot
                 }
 
                 // If the server is off, turn it on. If it's already booting, inform the user. If it's on, proceed to next code block.
-                Discord.EmbedBuilder startServerEmbed;
+                EmbedBuilder startServerEmbed;
                 switch (serverStatus) {
                     case 0:
                         bool startServerResponse = await _datHostClient.StartServer();
@@ -108,6 +109,102 @@ namespace EcoBot
 
             catch (Exception ex)
             {
+                _logger.LogCritical(ex.StackTrace);
+            }
+
+        }
+
+        private static async Task HandleStopServerCommand(SocketSlashCommand command) {
+            try {
+                // Let discord know that you've actually received the command and that you're gonna start processing stuff
+                await command.DeferAsync();
+
+                // Get the server status (-1 = booting,  0 = off, 1 = on)
+                int? serverStatus = await _datHostClient.GetServerStatus();
+                if (serverStatus == null) {
+                    var nullStatusEmbed = CreateEmbed(
+                        title: "Start Server",
+                        description: "An error occurred while getting the current server status.",
+                        ResponseType.Error
+                        );
+                    await command.FollowupAsync(embed: nullStatusEmbed.Build());
+                    return;
+                }
+
+                // If the server is off, turn it on. If it's already booting, inform the user. If it's on, proceed to next code block.
+                EmbedBuilder stopServerEmbed;
+                switch (serverStatus) {
+                    case 0:
+                        stopServerEmbed = CreateEmbed(
+                            title: "Stop Server",
+                            description: "The server is already off.",
+                            ResponseType.Information
+                            );
+                        await command.FollowupAsync(embed: stopServerEmbed.Build());
+                        return;
+
+                    case -1:
+                        stopServerEmbed = CreateEmbed(
+                            title: "Stop Server",
+                            description: "The server is currently booting.",
+                            ResponseType.Information
+                            );
+                        await command.FollowupAsync(embed: stopServerEmbed.Build());
+                        return;
+                }
+
+                // Otherwise, lets get the rcon details which we'll use to check if there are people in the server or if its empty
+                RconDetails? rconDetails = await _datHostClient.GetRconDetails();
+                if (rconDetails == null) {
+                    var nullRconDetailsEmbed = CreateEmbed(
+                        title: "Stop Server",
+                        description: "An error occurred while getting the server RCON details.",
+                        ResponseType.Error
+                        );
+                    await command.FollowupAsync(embed: nullRconDetailsEmbed.Build());
+                    return;
+                }
+
+                // Get the player count
+                var rconClient = new CS2RconClient(rconDetails, _logger);
+                int? playerCount = await rconClient.GetPlayerCount();
+                if (!playerCount.HasValue) {
+                    var nullPlayerCountEmbed = CreateEmbed(
+                        title: "Stop Server",
+                        description: "An error occurred while getting the player count.",
+                        ResponseType.Error
+                        );
+                    await command.FollowupAsync(embed: nullPlayerCountEmbed.Build());
+                    return;
+                }
+
+                // Change the embed description based on the player count
+                string description;
+                ResponseType responseType;
+                switch (playerCount) {
+                    case 0:
+                        description = "The server is being stopped.";
+                        responseType = ResponseType.Success;
+                        break;
+                    case 1:
+                        description = $"The server can't be stopped, 1 player is online.";
+                        responseType = ResponseType.Information;
+                        break;
+                    default:
+                        description = $"The server can't be stopped, there are {playerCount} players online.";
+                        responseType = ResponseType.Information;
+                        break;
+                }
+
+                stopServerEmbed = CreateEmbed(
+                    title: "Stop Server",
+                    description: description,
+                    responseType
+                    );
+                await command.FollowupAsync(embed: stopServerEmbed.Build());
+            }
+
+            catch (Exception ex) {
                 _logger.LogCritical(ex.StackTrace);
             }
 
