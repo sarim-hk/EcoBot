@@ -9,6 +9,7 @@ namespace EcoBot
         private static async Task HandleStartServerCommand(SocketSlashCommand command)
         {
             try {
+                EmbedBuilder startServerEmbed;
 
                 // Let discord know that you've actually received the command and that you're gonna start processing stuff
                 await command.DeferAsync();
@@ -16,17 +17,16 @@ namespace EcoBot
                 // Get the server status (-1 = booting,  0 = off, 1 = on)
                 int? serverStatus = await _datHostClient.GetServerStatus();
                 if (serverStatus == null) {
-                    var nullStatusEmbed = CreateEmbed(
+                    startServerEmbed = CreateEmbed(
                         title: "Start Server",
                         description: "An error occurred while getting the current server status.",
                         ResponseType.Error
                         );
-                    await command.FollowupAsync(embed: nullStatusEmbed.Build());
+                    await command.FollowupAsync(embed: startServerEmbed.Build());
                     return;
                 }
 
                 // If the server is off, turn it on. If it's already booting, inform the user. If it's on, proceed to next code block.
-                EmbedBuilder startServerEmbed;
                 switch (serverStatus) {
                     case 0:
                         bool startServerResponse = await _datHostClient.StartServer();
@@ -62,12 +62,12 @@ namespace EcoBot
                 // Otherwise, lets get the rcon details which we'll use to check if there are people in the server or if its empty
                 RconDetails? rconDetails = await _datHostClient.GetRconDetails();
                 if (rconDetails == null) {
-                    var nullRconDetailsEmbed = CreateEmbed(
+                    startServerEmbed = CreateEmbed(
                         title: "Start Server",
                         description: "An error occurred while getting the server RCON details.",
                         ResponseType.Error
                         );
-                    await command.FollowupAsync(embed: nullRconDetailsEmbed.Build());
+                    await command.FollowupAsync(embed: startServerEmbed.Build());
                     return;
                 }
 
@@ -75,12 +75,12 @@ namespace EcoBot
                 var rconClient = new CS2RconClient(rconDetails, _logger);
                 int? playerCount = await rconClient.GetPlayerCount();
                 if (!playerCount.HasValue) {
-                    var nullPlayerCountEmbed = CreateEmbed(
+                    startServerEmbed = CreateEmbed(
                         title: "Start Server",
                         description: "An error occurred while getting the player count.",
                         ResponseType.Error
                         );
-                    await command.FollowupAsync(embed: nullPlayerCountEmbed.Build());
+                    await command.FollowupAsync(embed: startServerEmbed.Build());
                     return;
                 }
 
@@ -99,12 +99,12 @@ namespace EcoBot
                         break;
                 }
 
-                var serverAlreadyOnEmbed = CreateEmbed(
+                startServerEmbed = CreateEmbed(
                     title: "Start Server",
                     description: description,
                     ResponseType.Information
                     );
-                await command.FollowupAsync(embed: serverAlreadyOnEmbed.Build());
+                await command.FollowupAsync(embed: startServerEmbed.Build());
             }
 
             catch (Exception ex)
@@ -116,23 +116,24 @@ namespace EcoBot
 
         private static async Task HandleStopServerCommand(SocketSlashCommand command) {
             try {
+                EmbedBuilder stopServerEmbed;
+
                 // Let discord know that you've actually received the command and that you're gonna start processing stuff
                 await command.DeferAsync();
 
                 // Get the server status (-1 = booting,  0 = off, 1 = on)
                 int? serverStatus = await _datHostClient.GetServerStatus();
                 if (serverStatus == null) {
-                    var nullStatusEmbed = CreateEmbed(
+                    stopServerEmbed = CreateEmbed(
                         title: "Start Server",
                         description: "An error occurred while getting the current server status.",
                         ResponseType.Error
                         );
-                    await command.FollowupAsync(embed: nullStatusEmbed.Build());
+                    await command.FollowupAsync(embed: stopServerEmbed.Build());
                     return;
                 }
 
                 // If the server is off, turn it on. If it's already booting, inform the user. If it's on, proceed to next code block.
-                EmbedBuilder stopServerEmbed;
                 switch (serverStatus) {
                     case 0:
                         stopServerEmbed = CreateEmbed(
@@ -156,12 +157,12 @@ namespace EcoBot
                 // Otherwise, lets get the rcon details which we'll use to check if there are people in the server or if its empty
                 RconDetails? rconDetails = await _datHostClient.GetRconDetails();
                 if (rconDetails == null) {
-                    var nullRconDetailsEmbed = CreateEmbed(
+                    stopServerEmbed = CreateEmbed(
                         title: "Stop Server",
                         description: "An error occurred while getting the server RCON details.",
                         ResponseType.Error
                         );
-                    await command.FollowupAsync(embed: nullRconDetailsEmbed.Build());
+                    await command.FollowupAsync(embed: stopServerEmbed.Build());
                     return;
                 }
 
@@ -169,12 +170,12 @@ namespace EcoBot
                 var rconClient = new CS2RconClient(rconDetails, _logger);
                 int? playerCount = await rconClient.GetPlayerCount();
                 if (!playerCount.HasValue) {
-                    var nullPlayerCountEmbed = CreateEmbed(
+                    stopServerEmbed = CreateEmbed(
                         title: "Stop Server",
                         description: "An error occurred while getting the player count.",
                         ResponseType.Error
                         );
-                    await command.FollowupAsync(embed: nullPlayerCountEmbed.Build());
+                    await command.FollowupAsync(embed: stopServerEmbed.Build());
                     return;
                 }
 
