@@ -30,7 +30,7 @@ namespace EcoBot {
                         if (startServerResponse == true) {
                             startServerEmbed = CreateEmbed(
                                 title: "Start Server",
-                                description: "The server will start shortly.",
+                                description: "The server has successfully started.",
                                 ResponseType.Success
                                 );
                         }
@@ -48,7 +48,7 @@ namespace EcoBot {
                     case -1:
                         startServerEmbed = CreateEmbed(
                             title: "Start Server",
-                            description: "The server is currently booting.",
+                            description: "The server is booting, it cannot be started.",
                             ResponseType.Information
                             );
                         await command.FollowupAsync(embed: startServerEmbed.Build());
@@ -180,7 +180,7 @@ namespace EcoBot {
                     case 0:
                         bool stopServerResponse = await _datHostClient.StopServer();
                         if (stopServerResponse == true) {
-                            description = "The server will stop shortly.";
+                            description = "The server has successfully stopped.";
                             responseType = ResponseType.Success;
                         }
                         else {
@@ -284,7 +284,7 @@ namespace EcoBot {
                     case 0:
                         bool restartServerResponse = await _datHostClient.StartServer();
                         if (restartServerResponse == true) {
-                            description = "The server will restart shortly.";
+                            description = "The server has successfully restarted.";
                             responseType = ResponseType.Success;
                         }
                         else {
