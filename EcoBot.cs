@@ -39,11 +39,12 @@ namespace EcoBot
             _datHostClient.SetAuthDetails(Config["DatHost:EmailAddress"]!, Config["DatHost:Password"]!, Config["DatHost:ServerID"]!);
 
             var guild = _discordClient.GetGuild(ulong.Parse(Config["Discord:GuildID"]!));
-            var guildCommand = new SlashCommandBuilder().WithName("startserver").WithDescription("Start the eco server.");
+            var startServerCommandBuild = new SlashCommandBuilder().WithName("startserver").WithDescription("Start the eco server.");
+            var stopServerCommandBuild = new SlashCommandBuilder().WithName("stopserver").WithDescription("Stop the eco server.");
 
-            try
-            {
-                await guild.CreateApplicationCommandAsync(guildCommand.Build());
+            try {
+                await guild.CreateApplicationCommandAsync(startServerCommandBuild.Build());
+                await guild.CreateApplicationCommandAsync(stopServerCommandBuild.Build());
             }
             catch (HttpException ex)
             {
@@ -60,6 +61,9 @@ namespace EcoBot
             {
                 case "startserver":
                     await HandleStartServerCommand(command);
+                    break;
+                case "stopserver":
+                    await HandleStopServerCommand(command);
                     break;
             }
 
