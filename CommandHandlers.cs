@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EcoBot {
     public partial class EcoBot {
+
         private static async Task HandleStartServerCommand(SocketSlashCommand command) {
             try {
                 EmbedBuilder startServerEmbed;
@@ -308,6 +309,100 @@ namespace EcoBot {
                     responseType
                     );
                 await command.FollowupAsync(embed: restartServerEmbed.Build());
+            }
+
+            catch (Exception ex) {
+                _logger.LogCritical(ex.StackTrace);
+            }
+
+        }
+
+        private static async Task HandleStatusCommand(SocketSlashCommand command) {
+            try {
+                EmbedBuilder statusEmbed;
+
+                // Let discord know that you've actually received the command and that you're gonna start processing stuff
+                await command.DeferAsync();
+
+                // Get the server status (-1 = booting,  0 = off, 1 = on)
+                int? serverStatus = await _datHostClient.GetServerStatus();
+                if (serverStatus == null) {
+                    statusEmbed = CreateEmbed(
+                        title: "Server Status",
+                        description: "An error occurred while getting the current server status.",
+                        ResponseType.Error
+                        );
+                    await command.FollowupAsync(embed: statusEmbed.Build());
+                    return;
+                }
+
+                // If the server is off, turn it on. If it's already booting, inform the user. If it's on, proceed to next code block.
+                switch (serverStatus) {
+                    case 0:
+                        bool startServerResponse = await _datHostClient.StartServer();
+                        statusEmbed = CreateEmbed(
+                            title: "Server Status",
+                            description: "The server is off.",
+                            ResponseType.Success
+                            );
+                        await command.FollowupAsync(embed: statusEmbed.Build());
+                        return;
+
+                    case -1:
+                        statusEmbed = CreateEmbed(
+                            title: "Server Status",
+                            description: "The server is booting, it cannot be started.",
+                            ResponseType.Information
+                            );
+                        await command.FollowupAsync(embed: statusEmbed.Build());
+                        return;
+                }
+
+                // Otherwise, lets get the rcon details which we'll use to check if there are people in the server or if its empty
+                RconDetails? rconDetails = await _datHostClient.GetRconDetails();
+                if (rconDetails == null) {
+                    statusEmbed = CreateEmbed(
+                        title: "Server Status",
+                        description: "An error occurred while getting the server RCON details.",
+                        ResponseType.Error
+                        );
+                    await command.FollowupAsync(embed: statusEmbed.Build());
+                    return;
+                }
+
+                // Get the player count
+                var rconClient = new CS2RconClient(rconDetails, _logger);
+                int? playerCount = await rconClient.GetPlayerCount();
+                if (!playerCount.HasValue) {
+                    statusEmbed = CreateEmbed(
+                        title: "Server Status",
+                        description: "An error occurred while getting the player count.",
+                        ResponseType.Error
+                        );
+                    await command.FollowupAsync(embed: statusEmbed.Build());
+                    return;
+                }
+
+                // Change the embed description based on the player count
+                string description;
+                switch (playerCount) {
+                    case 0:
+                        description = $"The server is on, but nobody is online.";
+                        break;
+                    case 1:
+                        description = $"The server is on, with 1 player online.";
+                        break;
+                    default:
+                        description = $"The server is on, with {playerCount} players online.";
+                        break;
+                }
+
+                statusEmbed = CreateEmbed(
+                    title: "Server Status",
+                    description: description,
+                    ResponseType.Information
+                    );
+                await command.FollowupAsync(embed: statusEmbed.Build());
             }
 
             catch (Exception ex) {

@@ -38,11 +38,14 @@ namespace EcoBot {
             var startServerCommandBuild = new SlashCommandBuilder().WithName("startserver").WithDescription("Start the eco server.");
             var restartServerCommandBuild = new SlashCommandBuilder().WithName("restartserver").WithDescription("Restart the eco server.");
             var stopServerCommandBuild = new SlashCommandBuilder().WithName("stopserver").WithDescription("Stop the eco server.");
+            var statusCommandBuild = new SlashCommandBuilder().WithName("status").WithDescription("Get the status of the eco server.");
+
 
             try {
                 await guild.CreateApplicationCommandAsync(startServerCommandBuild.Build());
                 await guild.CreateApplicationCommandAsync(restartServerCommandBuild.Build());
                 await guild.CreateApplicationCommandAsync(stopServerCommandBuild.Build());
+                await guild.CreateApplicationCommandAsync(statusCommandBuild.Build());
             }
             catch (HttpException ex) {
                 _logger.LogCritical(ex.StackTrace);
@@ -62,6 +65,9 @@ namespace EcoBot {
                     break;
                 case "stopserver":
                     await HandleStopServerCommand(command);
+                    break;
+                case "status":
+                    await HandleStatusCommand(command);
                     break;
             }
 
